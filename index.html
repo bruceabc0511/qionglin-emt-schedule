@@ -2,7 +2,7 @@
 <html lang="zh-Hant-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>芎林義消救護分隊｜協勤排班系統</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -116,23 +116,26 @@
   <!-- ===== 排班對話框 ===== -->
   <div class="modal hidden" id="shiftModal">
     <div class="modal-box">
-      <button class="modal-x" data-close>×</button>
-      <h3 id="shiftTitle"></h3>
-      <div id="shiftExisting"></div>
-      <div class="admin-panel hidden" id="adminShiftPanel">
-        <label class="inline-label">👮 管理員代排／異動人員：
-          <select id="shiftTargetMember"></select>
-        </label>
-        <div class="t2-lock-row">
-          <span id="t2LockStatusText"></span>
-          <button type="button" class="btn btn-sm btn-ghost-dark" id="toggleDayT2Btn"></button>
+      <div class="modal-body">
+        <button class="modal-x" data-close>×</button>
+        <h3 id="shiftTitle"></h3>
+        <div id="shiftExisting"></div>
+        <div class="admin-panel hidden" id="adminShiftPanel">
+          <label class="inline-label">👮 管理員代排／異動人員：
+            <select id="shiftTargetMember"></select>
+          </label>
+          <div class="t2-lock-row">
+            <span id="t2LockStatusText"></span>
+            <button type="button" class="btn btn-sm btn-ghost-dark" id="toggleDayT2Btn"></button>
+          </div>
         </div>
+        <div class="tier-tabs" id="tierTabs">
+          <button class="tier-tab t1" data-tier="1">一車 <small>08:00–22:00（4小時/班）</small></button>
+          <button class="tier-tab t2" data-tier="2" id="tier2TabBtn">二車 <small id="tier2TabSub">08:00–18:00（4小時/班）</small></button>
+        </div>
+        <div class="multi-bar" id="multiSelectBar"></div>
+        <div class="slot-list" id="slotList"></div>
       </div>
-      <div class="tier-tabs" id="tierTabs">
-        <button class="tier-tab t1" data-tier="1">一車 <small>08:00–22:00（4小時/班）</small></button>
-        <button class="tier-tab t2" data-tier="2" id="tier2TabBtn">二車 <small id="tier2TabSub">08:00–18:00（4小時/班）</small></button>
-      </div>
-      <div class="slot-list" id="slotList"></div>
       <div class="modal-actions">
         <button class="btn btn-danger hidden" id="deleteShiftBtn">取消此班</button>
         <span class="spacer"></span>
@@ -145,14 +148,16 @@
   <!-- ===== 二車時段管理（管理員） ===== -->
   <div class="modal hidden" id="t2Modal">
     <div class="modal-box wide">
-      <button class="modal-x" data-close>×</button>
-      <h3 id="t2ModalTitle">二車時段開放／鎖定管理</h3>
-      <p class="muted small">點擊日期即可切換該日「二車（08:00–18:00）」為開放或鎖定。鎖定後隊員將無法登記該日二車時段（您也可以直接在月曆每日右上角點選 🔓/🔒 快速切換）。</p>
-      <div class="t2-batch-bar">
-        <button type="button" class="btn btn-ghost-dark btn-sm" id="unlockAllT2Btn">🔓 全月開放二車</button>
-        <button type="button" class="btn btn-danger btn-sm" id="lockAllT2Btn">🔒 全月鎖定二車</button>
+      <div class="modal-body">
+        <button class="modal-x" data-close>×</button>
+        <h3 id="t2ModalTitle">二車時段開放／鎖定管理</h3>
+        <p class="muted small">點擊日期即可切換該日「二車（08:00–18:00）」為開放或鎖定。鎖定後隊員將無法登記該日二車時段（您也可以直接在月曆每日右上角點選 🔓/🔒 快速切換）。</p>
+        <div class="t2-batch-bar">
+          <button type="button" class="btn btn-ghost-dark btn-sm" id="unlockAllT2Btn">🔓 全月開放二車</button>
+          <button type="button" class="btn btn-danger btn-sm" id="lockAllT2Btn">🔒 全月鎖定二車</button>
+        </div>
+        <div class="t2-day-grid" id="t2DayGrid"></div>
       </div>
-      <div class="t2-day-grid" id="t2DayGrid"></div>
       <div class="modal-actions">
         <span class="spacer"></span>
         <button type="button" class="btn btn-light" data-close>關閉</button>
@@ -163,12 +168,14 @@
   <!-- ===== 變更 PIN ===== -->
   <div class="modal hidden" id="pinModal">
     <form class="modal-box small" id="pinForm">
-      <button type="button" class="modal-x" data-close>×</button>
-      <h3>變更 PIN 碼</h3>
-      <p class="muted" id="pinNotice"></p>
-      <label>原 PIN 碼<input type="password" id="oldPin" inputmode="numeric" maxlength="8" required></label>
-      <label>新 PIN 碼<input type="password" id="newPin" inputmode="numeric" maxlength="8" placeholder="4～8 位數字" required></label>
-      <label>再次輸入新 PIN 碼<input type="password" id="newPin2" inputmode="numeric" maxlength="8" required></label>
+      <div class="modal-body">
+        <button type="button" class="modal-x" data-close>×</button>
+        <h3>變更 PIN 碼</h3>
+        <p class="muted" id="pinNotice"></p>
+        <label>原 PIN 碼<input type="password" id="oldPin" inputmode="numeric" maxlength="8" required></label>
+        <label>新 PIN 碼<input type="password" id="newPin" inputmode="numeric" maxlength="8" placeholder="4～8 位數字" required></label>
+        <label>再次輸入新 PIN 碼<input type="password" id="newPin2" inputmode="numeric" maxlength="8" required></label>
+      </div>
       <div class="modal-actions">
         <span class="spacer"></span>
         <button type="button" class="btn btn-light" data-close id="pinCancel">取消</button>
@@ -180,23 +187,29 @@
   <!-- ===== 人員管理（管理員） ===== -->
   <div class="modal hidden" id="adminModal">
     <div class="modal-box wide">
-      <button class="modal-x" data-close>×</button>
-      <h3>人員清單管理</h3>
-      <form class="admin-add" id="addMemberForm">
-        <input id="newMemberName" placeholder="姓名" maxlength="20" required>
-        <input id="newMemberPin" placeholder="初始 PIN（預設 0000）" inputmode="numeric" maxlength="8">
-        <select id="newMemberRole">
-          <option value="member">一般成員</option>
-          <option value="admin">管理員</option>
-        </select>
-        <button class="btn btn-primary" type="submit">＋ 新增人員</button>
-      </form>
-      <p class="muted small">刪除人員為「停用」帳號，歷史排班紀錄將保留，可隨時恢復。</p>
-      <div class="tbl-scroll">
-        <table class="tbl" id="memberTable">
-          <thead><tr><th>姓名</th><th>角色</th><th>狀態</th><th>操作</th></tr></thead>
-          <tbody></tbody>
-        </table>
+      <div class="modal-body">
+        <button class="modal-x" data-close>×</button>
+        <h3>人員清單管理</h3>
+        <form class="admin-add" id="addMemberForm">
+          <input id="newMemberName" placeholder="姓名" maxlength="20" required>
+          <input id="newMemberPin" placeholder="初始 PIN（預設 0000）" inputmode="numeric" maxlength="8">
+          <select id="newMemberRole">
+            <option value="member">一般成員</option>
+            <option value="admin">管理員</option>
+          </select>
+          <button class="btn btn-primary" type="submit">＋ 新增人員</button>
+        </form>
+        <p class="muted small">刪除人員為「停用」帳號，歷史排班紀錄將保留，可隨時恢復。</p>
+        <div class="tbl-scroll">
+          <table class="tbl" id="memberTable">
+            <thead><tr><th>姓名</th><th>角色</th><th>狀態</th><th>操作</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <span class="spacer"></span>
+        <button type="button" class="btn btn-light" data-close>關閉</button>
       </div>
     </div>
   </div>

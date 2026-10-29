@@ -13,6 +13,7 @@
   const RATE_TARGET = CFG.RATE_TARGET || 90;
   const OPEN_DAY = CFG.OPEN_NEXT_MONTH_DAY || 20;
   const OPEN_HOUR = CFG.OPEN_NEXT_MONTH_HOUR != null ? CFG.OPEN_NEXT_MONTH_HOUR : 20;
+  const MAX_MULTI_SHIFTS = 3;
 
   const now = new Date();
   const state = {
@@ -20,7 +21,7 @@
     year: now.getFullYear(),
     month: now.getMonth() + 1,
     data: { shifts: [], lockedT2Dates: [], members: [], sheetUrl: '' },
-    modal: null,          // { date, editing, tier, start, targetName }
+    modal: null,          // { date, editing, tier, selections: [{tier, start}], targetName }
     pollTimer: null,
     busy: false,
   };
@@ -387,7 +388,7 @@
   $('#unlockAllT2Btn').onclick = () => batchSetT2Lock(false);
   $('#lockAllT2Btn').onclick = () => batchSetT2Lock(true);
 
-  // ---------------- 排班對話框 ----------------
+  // ---------------- 排班對話框（支援單日多選最多 3 班） ----------------
   $('#calendar').addEventListener('click', e => {
     const lockBtn = e.target.closest('button[data-lock-date]');
     if (lockBtn && isAdmin()) {
@@ -451,9 +452,16 @@
     const defaultTarget = editing
       ? editing.name
       : (isAdmin() ? (state.data.members[0] || state.session.name) : state.session.name);
-    state.modal = { date, editing, tier, start, targetName: defaultTarget };
+    const selections = start != null ? [{ tier, start }] : [];
+    state.modal = { date, editing, tier, selections, targetName: defaultTarget };
     renderModal();
     $('#shiftModal').classList.remove('hidden');
+  }
+
+  function isIntervalsOverlap(s1, s2) {
+    const e1 = s1 + CFG.SHIFT_HOURS;
+    const e2 = s2 + CFG.SHIFT_HOURS;
+    return s1 < e2 && s2 < e1;
   }
 
   function renderModal() {
@@ -493,16 +501,55 @@
     $('#tier2TabSub').textContent = locked2 ? '🔒 已鎖定未開放' : '08:00–18:00（4小時/班）';
 
     document.querySelectorAll('.tier-tab').forEach(b => b.classList.toggle('active', Number(b.dataset.tier) === m.tier));
+
+    // 移除已被他人搶先或被鎖定的已選時段
+    m.selections = m.selections.filter(sel => {
+      const tierOpts = slotOptions(m.date, sel.tier, m.editing, m.targetName);
+      const found = tierOpts.find(o => o.start === sel.start);
+      return found && !found.taken;
+    });
+
+    // 渲染多選提示列
+    const multiBar = $('#multiSelectBar');
+    if (m.editing) {
+      multiBar.innerHTML = `<span>請點選下方要更改的新時段（單選）</span>`;
+    } else {
+      const chips = m.selections.map((sel, idx) =>
+        `<span class="multi-chip" data-del-idx="${idx}" title="點擊取消此班">${CFG.TIER[sel.tier].name} ${range(sel.start, sel.start + CFG.SHIFT_HOURS)} ✕</span>`
+      ).join('');
+      multiBar.innerHTML = `<span>💡 同一天可點選多班（已選 <b>${m.selections.length} / ${MAX_MULTI_SHIFTS}</b> 班）</span>
+        <div class="multi-chips">${chips || '<span class="muted">尚未選取時段</span>'}</div>`;
+    }
+
     const opts = slotOptions(m.date, m.tier, m.editing, m.targetName);
-    if (m.start != null && opts.find(o => o.start === m.start && o.taken)) m.start = null;  // 已被他人搶先或鎖定
-    $('#slotList').innerHTML = opts.map(o =>
-      `<button class="slot-opt ${o.start === m.start ? 'selected' : ''}" data-start="${o.start}" ${o.taken ? 'disabled' : ''}>
-        ${range(o.start, o.end)}<small>${o.taken ? esc(o.taken) : '可登記'}</small></button>`).join('');
-    const unchanged = m.editing && m.editing.tier === m.tier && m.editing.start === m.start && m.editing.name === m.targetName;
-    $('#saveShiftBtn').disabled = m.start == null || unchanged;
-    $('#saveShiftBtn').textContent = m.editing ? '儲存修改' : '送出登記';
+    $('#slotList').innerHTML = opts.map(o => {
+      const selIdx = m.selections.findIndex(s => s.tier === m.tier && s.start === o.start);
+      const isSelected = selIdx !== -1;
+      const overlapsSelected = !isSelected && m.selections.some(s => isIntervalsOverlap(s.start, o.start));
+      let subText = '可登記';
+      if (o.taken) subText = esc(o.taken);
+      else if (isSelected) subText = m.editing ? '✓ 已選取' : `✓ 已選（第 ${selIdx + 1} 班）`;
+      else if (overlapsSelected) subText = '點擊可改選此時段';
+      return `<button type="button" class="slot-opt ${isSelected ? 'selected' : ''} ${overlapsSelected && !o.taken ? 'overlap-selected' : ''}" data-start="${o.start}" ${o.taken ? 'disabled' : ''}>
+        ${range(o.start, o.end)}<small>${subText}</small></button>`;
+    }).join('');
+
+    const curOne = m.selections[0];
+    const unchanged = m.editing && curOne && m.editing.tier === curOne.tier && m.editing.start === curOne.start && m.editing.name === m.targetName;
+    $('#saveShiftBtn').disabled = m.selections.length === 0 || unchanged;
+    $('#saveShiftBtn').textContent = m.editing
+      ? '儲存修改'
+      : (m.selections.length > 1 ? `送出登記（${m.selections.length} 班）` : '送出登記');
     $('#deleteShiftBtn').classList.toggle('hidden', !m.editing);
   }
+
+  $('#multiSelectBar').addEventListener('click', e => {
+    const chip = e.target.closest('[data-del-idx]');
+    if (!chip || !state.modal) return;
+    const idx = Number(chip.dataset.delIdx);
+    state.modal.selections.splice(idx, 1);
+    renderModal();
+  });
 
   $('#shiftTargetMember').addEventListener('change', e => {
     if (!state.modal) return;
@@ -514,28 +561,63 @@
     const b = e.target.closest('.tier-tab');
     if (!b || !state.modal) return;
     state.modal.tier = Number(b.dataset.tier);
-    state.modal.start = null;
+    if (state.modal.editing) state.modal.selections = [];
     renderModal();
   });
+
   $('#slotList').addEventListener('click', e => {
     const b = e.target.closest('.slot-opt');
-    if (!b || b.disabled) return;
-    state.modal.start = Number(b.dataset.start);
+    if (!b || b.disabled || !state.modal) return;
+    const m = state.modal;
+    const st = Number(b.dataset.start);
+
+    if (m.editing) {
+      m.selections = [{ tier: m.tier, start: st }];
+      return renderModal();
+    }
+
+    const existingIdx = m.selections.findIndex(s => s.tier === m.tier && s.start === st);
+    if (existingIdx !== -1) {
+      // 再次點擊已選時段 → 取消選取
+      m.selections.splice(existingIdx, 1);
+      return renderModal();
+    }
+
+    // 檢查是否與已選時段重疊（同一人同時段不可重疊）
+    const nonOverlapping = m.selections.filter(s => !isIntervalsOverlap(s.start, st));
+    if (nonOverlapping.length < m.selections.length) {
+      // 若點擊了與已選時段重疊的時段，直接替換該重疊時段
+      nonOverlapping.push({ tier: m.tier, start: st });
+      nonOverlapping.sort((a, b) => a.start - b.start || a.tier - b.tier);
+      m.selections = nonOverlapping;
+      return renderModal();
+    }
+
+    if (m.selections.length >= MAX_MULTI_SHIFTS) {
+      return toast(`同一天單次最多可選填 ${MAX_MULTI_SHIFTS} 班`, 'err');
+    }
+    m.selections.push({ tier: m.tier, start: st });
+    m.selections.sort((a, b) => a.start - b.start || a.tier - b.tier);
     renderModal();
   });
 
   $('#saveShiftBtn').onclick = async () => {
     const m = state.modal;
-    if (!m || m.start == null || state.busy) return;
+    if (!m || m.selections.length === 0 || state.busy) return;
     state.busy = true;
     try {
       const payloadTarget = isAdmin() ? m.targetName : undefined;
       if (m.editing) {
-        const res = await call('updateShift', { id: m.editing.id, tier: m.tier, start: m.start, targetName: payloadTarget });
+        const sel = m.selections[0];
+        const res = await call('updateShift', { id: m.editing.id, tier: sel.tier, start: sel.start, targetName: payloadTarget });
         toast(res.adminNote ? '已更新排班（已註記：管理員異動）' : '已更新排班', 'ok');
       } else {
-        const res = await call('addShift', { date: m.date, tier: m.tier, start: m.start, targetName: payloadTarget });
-        toast(`登記成功：${res.name} ${CFG.TIER[m.tier].name} ${range(m.start, m.start + CFG.SHIFT_HOURS)}${res.adminNote ? '（管理員異動）' : ''}`, 'ok');
+        const added = [];
+        for (const sel of m.selections) {
+          const res = await call('addShift', { date: m.date, tier: sel.tier, start: sel.start, targetName: payloadTarget });
+          added.push(`${CFG.TIER[sel.tier].name} ${range(sel.start, sel.start + CFG.SHIFT_HOURS)}`);
+        }
+        toast(`登記成功（${added.length} 班）：${added.join('、')}`, 'ok');
       }
       closeModal('#shiftModal');
       await loadMonth(true);
