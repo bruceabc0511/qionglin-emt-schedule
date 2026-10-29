@@ -205,7 +205,7 @@
     $('#adminBtn').classList.toggle('hidden', !isAdmin());
     $('#t2ManageBtn').classList.toggle('hidden', !isAdmin());
     const mb = $('#modeBadge');
-    mb.textContent = API.mode === 'mock' ? '🔴離線模式' : '🟢Google試算表連線';
+    mb.textContent = API.mode === 'mock' ? '離線模式' : 'Google試算表已連線';
     mb.classList.toggle('mock', API.mode === 'mock');
 
     // 手機上預設自動收合上方工具列與統計面板，減少畫面干擾
