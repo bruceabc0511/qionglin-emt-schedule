@@ -46,7 +46,7 @@
           open: true,
           reason: '',
           bannerType: 'open',
-          banner: `🔓 ${year - 1911}年${month}月班表已開放選填（每月 ${OPEN_DAY} 號 ${timeStr} 自動開放）`,
+          banner: `🔓 ${year - 1911}年${month}月班表已開放選填`,
         };
       }
       return {
