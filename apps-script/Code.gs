@@ -15,6 +15,7 @@ const CONFIG = {
   SHIFT_HOURS: 4,                       // 每班時數（4 小時）
   STEP_HOURS: 1,                        // 起始時間間隔（1 小時一格：08-09、09-10…）
   OPEN_NEXT_MONTH_DAY: 20,              // 每月幾號自動開放選填次月班表（20 號）
+  OPEN_NEXT_MONTH_HOUR: 20,             // 開放時間：20:00（晚上 8 點）
   TIER: {
     1: { name: '一車', start: 8, end: 22 },
     2: { name: '二車', start: 8, end: 18 },
@@ -78,25 +79,25 @@ function setup() {
 
   const t = new Date();
   renderMonthSheet_(t.getFullYear(), t.getMonth() + 1);
-  if (t.getDate() >= CONFIG.OPEN_NEXT_MONTH_DAY) {
+  if (t.getDate() > CONFIG.OPEN_NEXT_MONTH_DAY || (t.getDate() === CONFIG.OPEN_NEXT_MONTH_DAY && t.getHours() >= CONFIG.OPEN_NEXT_MONTH_HOUR)) {
     const nx = new Date(t.getFullYear(), t.getMonth() + 1, 1);
     renderMonthSheet_(nx.getFullYear(), nx.getMonth() + 1);
   }
   Logger.log('初始化完成。管理員帳號：管理員 / PIN 9999；成員預設 PIN：' + CONFIG.DEFAULT_PIN);
 }
 
-/** 建立每日定時觸發器：每月 20 日自動建立次月排班表工作表 */
+/** 建立每日定時觸發器：每月 20 日 20:00 自動建立次月排班表工作表 */
 function setupAutoOpenTrigger_() {
   const fnName = 'dailyAutoOpenCheck_';
   const exists = ScriptApp.getProjectTriggers().some(t => t.getHandlerFunction() === fnName);
   if (!exists) {
-    ScriptApp.newTrigger(fnName).timeBased().everyDays(1).atHour(0).create();
+    ScriptApp.newTrigger(fnName).timeBased().everyDays(1).atHour(CONFIG.OPEN_NEXT_MONTH_HOUR).create();
   }
 }
 
 function dailyAutoOpenCheck_() {
   const now = new Date();
-  if (now.getDate() >= CONFIG.OPEN_NEXT_MONTH_DAY) {
+  if (now.getDate() > CONFIG.OPEN_NEXT_MONTH_DAY || (now.getDate() === CONFIG.OPEN_NEXT_MONTH_DAY && now.getHours() >= CONFIG.OPEN_NEXT_MONTH_HOUR)) {
     const nx = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     if (!ss.getSheetByName(monthSheetName_(nx.getFullYear(), nx.getMonth() + 1))) {
@@ -330,18 +331,21 @@ function validateShift_(all, p) {
 
 function checkEditable_(date, isAdmin) {
   if (isAdmin) return;
-  const today = Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy-MM-dd');
+  const nowStr = Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy-MM-dd-HH');
+  const today = nowStr.slice(0, 10);
   if (!CONFIG.ALLOW_PAST_EDIT && date < today) {
     throw new Error('已過去的日期無法再變更');
   }
-  const [ty, tm, td] = today.split('-').map(Number);
+  const [ty, tm, td, th] = nowStr.split('-').map(Number);
   const [dy, dm] = date.split('-').map(Number);
   const monthDiff = (dy - ty) * 12 + (dm - tm);
-  if (monthDiff === 1 && td < CONFIG.OPEN_NEXT_MONTH_DAY) {
-    throw new Error('次月（' + dm + '月）班表將於本月 ' + CONFIG.OPEN_NEXT_MONTH_DAY + ' 日自動開放選填');
+  const timeStr = pad_(CONFIG.OPEN_NEXT_MONTH_HOUR) + ':00';
+  const isOpened = td > CONFIG.OPEN_NEXT_MONTH_DAY || (td === CONFIG.OPEN_NEXT_MONTH_DAY && th >= CONFIG.OPEN_NEXT_MONTH_HOUR);
+  if (monthDiff === 1 && !isOpened) {
+    throw new Error('次月（' + dm + '月）班表將於本月 ' + CONFIG.OPEN_NEXT_MONTH_DAY + ' 日 ' + timeStr + ' 自動開放選填');
   }
   if (monthDiff > 1) {
-    throw new Error(dm + '月班表尚未開放選填（每月 ' + CONFIG.OPEN_NEXT_MONTH_DAY + ' 日開放次月班表）');
+    throw new Error(dm + '月班表尚未開放選填（每月 ' + CONFIG.OPEN_NEXT_MONTH_DAY + ' 日 ' + timeStr + ' 開放次月班表）');
   }
 }
 

@@ -152,15 +152,18 @@
       if (isAdmin) return;
       const today = todayStr();
       if (!CFG.ALLOW_PAST_EDIT && date < today) throw new Error('已過去的日期無法再變更');
-      const [ty, tm, td] = today.split('-').map(Number);
+      const now = new Date();
+      const ty = now.getFullYear(), tm = now.getMonth() + 1, td = now.getDate(), th = now.getHours();
       const [dy, dm] = date.split('-').map(Number);
       const monthDiff = (dy - ty) * 12 + (dm - tm);
       const openDay = CFG.OPEN_NEXT_MONTH_DAY || 20;
-      if (monthDiff === 1 && td < openDay) {
-        throw new Error(`次月（${dm}月）班表將於本月 ${openDay} 日自動開放選填`);
+      const openHour = CFG.OPEN_NEXT_MONTH_HOUR != null ? CFG.OPEN_NEXT_MONTH_HOUR : 20;
+      const isOpened = td > openDay || (td === openDay && th >= openHour);
+      if (monthDiff === 1 && !isOpened) {
+        throw new Error(`次月（${dm}月）班表將於本月 ${openDay} 日 ${pad(openHour)}:00 自動開放選填`);
       }
       if (monthDiff > 1) {
-        throw new Error(`${dm}月班表尚未開放選填（每月 ${openDay} 日開放次月班表）`);
+        throw new Error(`${dm}月班表尚未開放選填（每月 ${openDay} 日 ${pad(openHour)}:00 開放次月班表）`);
       }
     }
     _addShift({ token, date, tier, start, targetName }) {

@@ -12,6 +12,7 @@
   const SESSION_KEY = 'vems_session';
   const RATE_TARGET = CFG.RATE_TARGET || 90;
   const OPEN_DAY = CFG.OPEN_NEXT_MONTH_DAY || 20;
+  const OPEN_HOUR = CFG.OPEN_NEXT_MONTH_HOUR != null ? CFG.OPEN_NEXT_MONTH_HOUR : 20;
 
   const now = new Date();
   const state = {
@@ -30,34 +31,36 @@
   const hhmm = h => `${pad(h)}:00`;
   const range = (s, e) => `${hhmm(s)}–${hhmm(e)}`;
 
-  /** 檢查指定年月是否已開放一般成員選填（每月 20 號開放次月班表） */
+  /** 檢查指定年月是否已開放一般成員選填（每月 20 號 20:00 開放次月班表） */
   function getMonthOpenInfo(year, month) {
     const d = new Date();
-    const ty = d.getFullYear(), tm = d.getMonth() + 1, td = d.getDate();
+    const ty = d.getFullYear(), tm = d.getMonth() + 1, td = d.getDate(), th = d.getHours();
     const diff = (year - ty) * 12 + (month - tm);
+    const timeStr = `${pad(OPEN_HOUR)}:00`;
     if (diff < 0) return { open: false, reason: '已過去的月份無法再變更', banner: '' };
     if (diff === 0) return { open: true, reason: '', banner: '' };
     if (diff === 1) {
-      if (td >= OPEN_DAY) {
+      const isOpened = td > OPEN_DAY || (td === OPEN_DAY && th >= OPEN_HOUR);
+      if (isOpened) {
         return {
           open: true,
           reason: '',
           bannerType: 'open',
-          banner: `🔓 ${year - 1911}年${month}月（次月）班表已開放選填（每月 ${OPEN_DAY} 號自動開放）`,
+          banner: `🔓 ${year - 1911}年${month}月（次月）班表已開放選填（每月 ${OPEN_DAY} 號 ${timeStr} 自動開放）`,
         };
       }
       return {
         open: false,
-        reason: `次月（${month}月）班表將於本月 ${OPEN_DAY} 日自動開放選填`,
+        reason: `次月（${month}月）班表將於本月 ${OPEN_DAY} 日 ${timeStr} 自動開放選填`,
         bannerType: 'wait',
-        banner: `⏰ ${year - 1911}年${month}月（次月）班表將於本月 ${OPEN_DAY} 號 00:00 自動開放選填（目前僅供預覽，管理員可先行排班）`,
+        banner: `⏰ ${year - 1911}年${month}月（次月）班表將於本月 ${OPEN_DAY} 號 ${timeStr} 自動開放選填（目前僅供預覽，管理員可先行排班）`,
       };
     }
     return {
       open: false,
-      reason: `${month}月班表尚未開放選填（每月 ${OPEN_DAY} 日開放次月班表）`,
+      reason: `${month}月班表尚未開放選填（每月 ${OPEN_DAY} 日 ${timeStr} 開放次月班表）`,
       bannerType: 'wait',
-      banner: `🔒 ${year - 1911}年${month}月班表尚未開放選填（將於前一個月 ${OPEN_DAY} 號自動開放）`,
+      banner: `🔒 ${year - 1911}年${month}月班表尚未開放選填（將於前一個月 ${OPEN_DAY} 號 ${timeStr} 自動開放）`,
     };
   }
 

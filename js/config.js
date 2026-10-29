@@ -12,6 +12,7 @@ window.APP_CONFIG = {
   SHIFT_HOURS: 4,             // 每班 4 小時
   STEP_HOURS: 1,              // 時間區間 1 小時（08-09、09-10…）
   OPEN_NEXT_MONTH_DAY: 20,    // 每月 20 號自動開放選填次月班表
+  OPEN_NEXT_MONTH_HOUR: 20,   // 開放時間：20:00（晚上 8 點）
   TIER: {
     1: { name: '一車', start: 8, end: 22 },
     2: { name: '二車', start: 8, end: 18 },
