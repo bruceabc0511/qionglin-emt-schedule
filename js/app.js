@@ -480,7 +480,7 @@
     if (adm) {
       const names = Array.from(new Set([...state.data.members, ...(m.editing ? [m.editing.name] : [])]));
       const sel = $('#shiftTargetMember');
-      sel.innerHTML = names.map(n => `<option value="${esc(n)}" ${n === m.targetName ? 'selected' : ''}>${esc(n)}${n !== state.session.name ? '（註記：管理員異動）' : ''}</option>`).join('');
+      sel.innerHTML = names.map(n => `<option value="${esc(n)}" ${n === m.targetName ? 'selected' : ''}>${esc(n)}${n !== state.session.name ? '（管理員異動）' : ''}</option>`).join('');
       const locked2 = isT2Locked(m.date);
       $('#t2LockStatusText').textContent = `當日二車狀態：${locked2 ? '🔒 已鎖定（隊員無法選填）' : '🔓 開放排班中'}`;
       const btn = $('#toggleDayT2Btn');
