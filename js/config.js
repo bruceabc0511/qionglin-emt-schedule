@@ -6,7 +6,7 @@
  *   - 填入網址 → 使用 Google 試算表作為資料庫
  */
 window.APP_CONFIG = {
-  API_URL: '',
+  API_URL: 'https://script.google.com/macros/s/AKfycbyEf7fdKwdO50dXq4VMtbJ_vpDXp1jiOGmCjPFnIoPjdbpe88qN9epW8FGVw_JLVHSCrg/exec',
 
   UNIT_NAME: '芎林義消救護分隊',
   SHIFT_HOURS: 4,             // 每班 4 小時

@@ -581,7 +581,11 @@ function applyMerges_(ss, sh, merges) {
 
 // ======================= 資料存取工具 =======================
 function getSheet_(name) {
-  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);
+  let sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);
+  if (!sh && (name === SHEET_MEMBERS || name === SHEET_SHIFTS)) {
+    setup();
+    sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);
+  }
   if (!sh) throw new Error('找不到工作表「' + name + '」，請先執行 setup()');
   return sh;
 }
