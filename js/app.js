@@ -46,14 +46,14 @@
           open: true,
           reason: '',
           bannerType: 'open',
-          banner: `🔓 ${year - 1911}年${month}月（次月）班表已開放選填（每月 ${OPEN_DAY} 號 ${timeStr} 自動開放）`,
+          banner: `🔓 ${year - 1911}年${month}月班表已開放選填（每月 ${OPEN_DAY} 號 ${timeStr} 自動開放）`,
         };
       }
       return {
         open: false,
         reason: `次月（${month}月）班表將於本月 ${OPEN_DAY} 日 ${timeStr} 自動開放選填`,
         bannerType: 'wait',
-        banner: `⏰ ${year - 1911}年${month}月（次月）班表將於本月 ${OPEN_DAY} 號 ${timeStr} 自動開放選填（目前僅供預覽，管理員可先行排班）`,
+        banner: `⏰ ${year - 1911}年${month}月班表將於本月 ${OPEN_DAY} 號 ${timeStr} 自動開放選填（目前僅供預覽，管理員可先行排班）`,
       };
     }
     return {
