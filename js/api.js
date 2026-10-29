@@ -54,20 +54,28 @@
       if (existing) {
         try {
           const parsed = JSON.parse(existing);
-          if (!Array.isArray(parsed.lockedT2Dates)) { parsed.lockedT2Dates = []; this.save(parsed); }
+          if (!parsed.t2UnlockedMonths) { parsed.t2UnlockedMonths = {}; this.save(parsed); }
           return;
         } catch (_) {}
       }
       const members = [{ name: '管理員', pin: hash('管理員|9999'), role: 'admin', active: true, mustChange: false }]
         .concat(INITIAL.map(n => ({ name: n, pin: hash(n + '|0000'), role: 'member', active: true, mustChange: false })));
-      this.save({ members, shifts: [], lockedT2Dates: [], sessions: {} });
+      this.save({ members, shifts: [], t2UnlockedMonths: {}, sessions: {} });
     }
     load() {
       const db = JSON.parse(localStorage.getItem(DB_KEY));
-      if (!Array.isArray(db.lockedT2Dates)) db.lockedT2Dates = [];
+      if (!db.t2UnlockedMonths) db.t2UnlockedMonths = {};
       return db;
     }
     save(db) { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+    lockedForMonth(db, year, month) {
+      const ym = `${year}-${pad(month)}`;
+      const days = new Date(year, month, 0).getDate();
+      const all = [`${ym}-00`].concat(Array.from({ length: days }, (_, i) => `${ym}-${pad(i + 1)}`));
+      if (!Array.isArray(db.t2UnlockedMonths[ym])) return all; // 預設全月鎖定
+      const unlocked = new Set(db.t2UnlockedMonths[ym]);
+      return all.filter(d => !unlocked.has(d));
+    }
 
     async call(action, p = {}) {
       await new Promise(r => setTimeout(r, 80));
@@ -114,7 +122,7 @@
       return {
         year, month,
         shifts: db.shifts.filter(s => s.date.startsWith(prefix)),
-        lockedT2Dates: db.lockedT2Dates.filter(d => d.startsWith(prefix)),
+        lockedT2Dates: this.lockedForMonth(db, year, month),
         members: this.roster(db),
         sheetUrl: '',
       };
@@ -123,13 +131,14 @@
       this.admin(token);
       const list = Array.isArray(dates) ? dates.map(String) : [String(date || '')];
       if (!list.length || !/^\d{4}-\d{2}-\d{2}$/.test(list[0])) throw new Error('日期格式錯誤');
+      const [y, m] = list[0].split('-').map(Number);
+      const ym = `${y}-${pad(m)}`;
       const db = this.load();
-      const set = new Set(db.lockedT2Dates);
-      list.forEach(d => { if (locked) set.add(d); else set.delete(d); });
-      db.lockedT2Dates = Array.from(set).sort();
+      const unlocked = new Set(db.t2UnlockedMonths[ym] || []);
+      list.forEach(d => { if (locked) unlocked.delete(d); else unlocked.add(d); });
+      db.t2UnlockedMonths[ym] = Array.from(unlocked).sort();
       this.save(db);
-      const prefix = list[0].slice(0, 8);
-      return { lockedT2Dates: db.lockedT2Dates.filter(d => d.startsWith(prefix)) };
+      return { lockedT2Dates: this.lockedForMonth(db, y, m) };
     }
     validate(db, p) {
       const t = CFG.TIER[p.tier];
@@ -138,7 +147,8 @@
         throw new Error(`${t ? t.name : ''}可排時段為 ${pad(t.start)}:00～${pad(t.end)}:00`);
       }
       this.editable(p.date, p.isAdmin);
-      if (p.tier === 2 && db.lockedT2Dates.includes(p.date)) {
+      const [dy, dm] = p.date.split('-').map(Number);
+      if (p.tier === 2 && this.lockedForMonth(db, dy, dm).includes(p.date)) {
         throw new Error('當日二車時段已鎖定未開放排班');
       }
       for (const s of db.shifts) {

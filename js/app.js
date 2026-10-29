@@ -173,11 +173,27 @@
     state.pollTimer = setInterval(() => { if (!document.hidden) loadMonth(true); }, CFG.POLL_SECONDS * 1000);
   }
 
+  function allMonthDatesWithMarker(year, month) {
+    const days = new Date(year, month, 0).getDate();
+    const ym = `${year}-${pad(month)}`;
+    const list = Array.from({ length: days }, (_, i) => `${ym}-${pad(i + 1)}`);
+    list.push(`${ym}-00`); // 初始化標記（代表此月份已套用二車預設全鎖定）
+    return list;
+  }
+
   async function loadMonth(silent = false) {
     try {
       const d = await call('getMonth', { year: state.year, month: state.month }, { silent });
       if (d.year !== state.year || d.month !== state.month) return;  // 使用者已切換月份
       d.lockedT2Dates = d.lockedT2Dates || [];
+      const marker = `${d.year}-${pad(d.month)}-00`;
+      if (!d.lockedT2Dates.includes(marker)) {
+        // 該月份尚未初始化：預設將全月二車時段設為全部鎖定
+        d.lockedT2Dates = allMonthDatesWithMarker(d.year, d.month);
+        if (isAdmin()) {
+          call('setTier2Lock', { dates: d.lockedT2Dates, locked: true }, { silent: true }).catch(() => {});
+        }
+      }
       state.data = d;
       $('#syncText').textContent = '最後更新 ' + new Date().toLocaleTimeString('zh-TW', { hour12: false });
       render();
@@ -300,8 +316,9 @@
     $('#gapValue').textContent = gap;
     $('#gapSub').textContent = gap ? '尚待填補，請踴躍登記' : '本月一車已全數排滿 🎉';
     $('#t2Value').textContent = shifts.length - t1.length;
-    const lockedCount = (state.data.lockedT2Dates || []).length;
-    $('#t2Sub').textContent = lockedCount ? `不列入排班率（本月鎖定 ${lockedCount} 天）` : '不列入排班率';
+    const lockedCount = (state.data.lockedT2Dates || []).filter(x => !x.endsWith('-00')).length;
+    const openT2Count = Math.max(0, days - lockedCount);
+    $('#t2Sub').textContent = openT2Count ? `不列入排班率（本月開放 ${openT2Count} 天）` : '不列入排班率（預設全月鎖定）';
     const me = state.session.name;
     const mine = shifts.filter(s => s.name === me);
     $('#myValue').textContent = mine.length;
@@ -332,11 +349,19 @@
   $('#todayBtn').onclick = () => { const t = new Date(); state.year = t.getFullYear(); state.month = t.getMonth() + 1; render(); loadMonth(); };
   $('#refreshBtn').onclick = () => loadMonth();
 
-  // ---------------- 二車鎖定管理 ----------------
+  // ---------------- 二車鎖定管理（預設全部鎖定） ----------------
   async function toggleT2DateLock(date, locked) {
     try {
-      const res = await call('setTier2Lock', { date, locked });
-      state.data.lockedT2Dates = res.lockedT2Dates || [];
+      const [y, m] = date.split('-').map(Number);
+      const marker = `${y}-${pad(m)}-00`;
+      if (!locked && !(state.data.lockedT2Dates || []).includes(marker)) {
+        await call('setTier2Lock', { dates: allMonthDatesWithMarker(y, m), locked: true }, { silent: true });
+      }
+      const dates = locked ? [date, marker] : [date];
+      const res = await call('setTier2Lock', { dates, locked });
+      const list = res.lockedT2Dates || [];
+      if (!list.includes(marker)) list.push(marker);
+      state.data.lockedT2Dates = list;
       toast(`${date} 二車已${locked ? '鎖定' : '開放'}`, 'ok');
       render();
       if (state.modal) renderModal();
@@ -347,10 +372,19 @@
   async function batchSetT2Lock(locked) {
     const { year, month } = state;
     const days = new Date(year, month, 0).getDate();
-    const dates = Array.from({ length: days }, (_, i) => `${year}-${pad(month)}-${pad(i + 1)}`);
+    const ym = `${year}-${pad(month)}`;
+    const marker = `${ym}-00`;
+    const dates = Array.from({ length: days }, (_, i) => `${ym}-${pad(i + 1)}`);
+    if (locked) dates.push(marker);
     try {
+      if (!locked) {
+        // 先確保初始化標記存在於後端，再將全月真實日期解鎖
+        await call('setTier2Lock', { dates: [dates[0], marker], locked: true }, { silent: true });
+      }
       const res = await call('setTier2Lock', { dates, locked });
-      state.data.lockedT2Dates = res.lockedT2Dates || [];
+      const list = res.lockedT2Dates || [];
+      if (!list.includes(marker)) list.push(marker);
+      state.data.lockedT2Dates = list;
       toast(`本月二車已全數${locked ? '鎖定' : '開放'}`, 'ok');
       render();
       renderT2Modal();

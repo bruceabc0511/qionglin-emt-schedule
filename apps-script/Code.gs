@@ -192,12 +192,20 @@ function apiChangePin(req) {
   });
 }
 
-// ======================= 二車鎖定管理 =======================
+// ======================= 二車鎖定管理（預設全部鎖定） =======================
+function allDatesOfMonth_(y, m) {
+  const days = new Date(y, m, 0).getDate();
+  const prefix = y + '-' + pad_(m) + '-';
+  const list = [prefix + '00'];
+  for (let d = 1; d <= days; d++) list.push(prefix + pad_(d));
+  return list;
+}
+
 function getLockedT2Dates_(y, m) {
   const key = 'T2_LOCK_' + y + '-' + pad_(m);
   const raw = PropertiesService.getScriptProperties().getProperty(key);
-  if (!raw) return [];
-  try { return JSON.parse(raw); } catch (_) { return []; }
+  if (raw === null) return allDatesOfMonth_(y, m);   // 未設定過之月份，預設全月二車皆為鎖定
+  try { return JSON.parse(raw); } catch (_) { return allDatesOfMonth_(y, m); }
 }
 
 function saveLockedT2Dates_(y, m, dates) {
