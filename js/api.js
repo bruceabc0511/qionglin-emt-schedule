@@ -160,7 +160,7 @@
       const openHour = CFG.OPEN_NEXT_MONTH_HOUR != null ? CFG.OPEN_NEXT_MONTH_HOUR : 20;
       const isOpened = td > openDay || (td === openDay && th >= openHour);
       if (monthDiff === 1 && !isOpened) {
-        throw new Error(`次月（${dm}月）班表將於本月 ${openDay} 日 ${pad(openHour)}:00 自動開放選填`);
+        throw new Error(`${dm}月班表將於本月 ${openDay} 日 ${pad(openHour)}:00 自動開放選填`);
       }
       if (monthDiff > 1) {
         throw new Error(`${dm}月班表尚未開放選填（每月 ${openDay} 日 ${pad(openHour)}:00 開放次月班表）`);
