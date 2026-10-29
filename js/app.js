@@ -118,6 +118,7 @@
     $('#loginView').classList.remove('hidden');
     $('#appView').classList.add('hidden');
     $('#userArea').classList.add('hidden');
+    $('#topbarQuick').classList.add('hidden');
     if (API.mode === 'mock') {
       $('#mockHint').innerHTML = `目前尚未設定 Google 試算表連線網址（<code>js/config.js</code> 的 <code>API_URL</code>），資料暫存於本機瀏覽器。`;
     } else {
@@ -157,17 +158,61 @@
   }
   $('#logoutBtn').onclick = logout;
 
-  // ---------------- 主畫面 ----------------
+  // ---------------- 主畫面與上方區塊收合控制 ----------------
+  function setTopMenuCollapsed(collapsed) {
+    const ua = $('#userArea');
+    ua.classList.toggle('collapsed', collapsed);
+    $('#menuArrow').textContent = collapsed ? '▾' : '▴';
+  }
+
+  function setDashboardCollapsed(collapsed) {
+    const dp = $('#dashboardPanel');
+    dp.classList.toggle('collapsed', collapsed);
+    $('#dashArrow').textContent = collapsed ? '▾' : '▴';
+  }
+
+  $('#toggleMenuBtn').onclick = () => {
+    setTopMenuCollapsed(!$('#userArea').classList.contains('collapsed'));
+  };
+
+  $('#toggleDashBtn').onclick = () => {
+    setDashboardCollapsed(!$('#dashboardPanel').classList.contains('collapsed'));
+  };
+
+  // 點選上方工具列任一功能按鈕後，於手機版自動收合工具列
+  $('#userArea').addEventListener('click', e => {
+    if (window.innerWidth <= 760 && e.target.closest('.btn')) {
+      setTopMenuCollapsed(true);
+    }
+  });
+
+  // 手機版向下捲動進入月曆時，自動收合展開中的上方工具列與統計區
+  let lastScrollY = 0;
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY || 0;
+    if (window.innerWidth <= 760 && y > 140 && y - lastScrollY > 25) {
+      if (!$('#userArea').classList.contains('collapsed')) setTopMenuCollapsed(true);
+    }
+    lastScrollY = y;
+  }, { passive: true });
+
   async function enterApp() {
     $('#loginView').classList.add('hidden');
     $('#appView').classList.remove('hidden');
     $('#userArea').classList.remove('hidden');
+    $('#topbarQuick').classList.remove('hidden');
     $('#userChip').textContent = (isAdmin() ? '👮 ' : '👤 ') + state.session.name;
     $('#adminBtn').classList.toggle('hidden', !isAdmin());
     $('#t2ManageBtn').classList.toggle('hidden', !isAdmin());
     const mb = $('#modeBadge');
     mb.textContent = API.mode === 'mock' ? '離線模式' : 'Google 試算表連線';
     mb.classList.toggle('mock', API.mode === 'mock');
+
+    // 手機上預設自動收合上方工具列與統計面板，減少畫面干擾
+    const isMobile = window.innerWidth <= 760;
+    setTopMenuCollapsed(isMobile);
+    setDashboardCollapsed(isMobile);
+
     await loadMonth();
     clearInterval(state.pollTimer);
     state.pollTimer = setInterval(() => { if (!document.hidden) loadMonth(true); }, CFG.POLL_SECONDS * 1000);
@@ -323,6 +368,7 @@
     const mine = shifts.filter(s => s.name === me);
     $('#myValue').textContent = mine.length;
     $('#mySub').textContent = `一車 ${mine.filter(s => s.tier === 1).length} 班、二車 ${mine.filter(s => s.tier === 2).length} 班`;
+    $('#dashMiniSummary').textContent = `排班率 ${rate.toFixed(1)}%｜我的班 ${mine.length}`;
 
     const stat = new Map();
     state.data.members.forEach(n => stat.set(n, { t1: 0, t2: 0 }));

@@ -8,15 +8,21 @@
 </head>
 <body>
   <!-- ===== 頁首 ===== -->
-  <header class="topbar">
-    <div class="brand">
-      <svg class="logo" viewBox="0 0 48 48" aria-hidden="true">
-        <circle cx="24" cy="24" r="22" fill="#fff"/>
-        <path d="M20 10h8v10h10v8H28v10h-8V28H10v-8h10z" fill="#E74C3C"/>
-      </svg>
-      <div>
-        <h1 id="unitName">芎林義消救護分隊</h1>
-        <p>救護義消每日協勤線上排班系統</p>
+  <header class="topbar" id="topbar">
+    <div class="topbar-main">
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 48 48" aria-hidden="true">
+          <circle cx="24" cy="24" r="22" fill="#fff"/>
+          <path d="M20 10h8v10h10v8H28v10h-8V28H10v-8h10z" fill="#E74C3C"/>
+        </svg>
+        <div>
+          <h1 id="unitName">芎林義消救護分隊</h1>
+          <p>救護義消每日協勤線上排班系統</p>
+        </div>
+      </div>
+      <div class="topbar-quick hidden" id="topbarQuick">
+        <span class="user-chip" id="userChip"></span>
+        <button type="button" class="btn btn-ghost top-toggle-btn" id="toggleMenuBtn" title="展開/收合上方工具列">⚙️ 工具列 <span id="menuArrow">▾</span></button>
       </div>
     </div>
     <div class="user-area hidden" id="userArea">
@@ -25,7 +31,6 @@
       <button class="btn btn-ghost hidden" id="t2ManageBtn">🚑 二車時段管理</button>
       <button class="btn btn-ghost hidden" id="adminBtn">👥 人員管理</button>
       <button class="btn btn-ghost" id="pinBtn">🔑 變更 PIN</button>
-      <span class="user-chip" id="userChip"></span>
       <button class="btn btn-ghost" id="logoutBtn">登出</button>
     </div>
   </header>
@@ -55,49 +60,57 @@
         <button class="btn btn-icon" id="nextMonth" title="下個月">›</button>
         <button class="btn btn-ghost-dark" id="todayBtn">本月</button>
       </div>
-      <div class="legend">
-        <span><i class="lg lg-t1"></i>一車（08–22）</span>
-        <span><i class="lg lg-t2"></i>二車（08–18）</span>
-        <span><i class="lg lg-mine"></i>我的班</span>
-        <span><i class="lg lg-locked"></i>二車鎖定/不可排</span>
-      </div>
-      <div class="sync">
-        <span id="syncText" class="muted"></span>
+      <div class="toolbar-actions">
+        <button type="button" class="btn btn-ghost-dark dash-toggle-btn" id="toggleDashBtn" title="展開/收合排班率統計與圖例">
+          📊 <span id="dashMiniSummary">統計資訊</span> <span id="dashArrow">▴</span>
+        </button>
         <button class="btn btn-ghost-dark" id="refreshBtn" title="重新整理">⟳ 更新</button>
       </div>
     </section>
 
     <div class="open-banner hidden" id="monthOpenBanner"></div>
 
-    <section class="stats">
-      <div class="stat stat-main" id="rateCard">
-        <div class="stat-label">
-          本月協勤排班率 <small>（僅計一車｜目標 ≥90%）</small>
-          <span class="goal-badge" id="goalBadge">未達標</span>
+    <div class="dashboard-panel" id="dashboardPanel">
+      <div class="dash-subbar">
+        <div class="legend">
+          <span><i class="lg lg-t1"></i>一車（08–22）</span>
+          <span><i class="lg lg-t2"></i>二車（08–18）</span>
+          <span><i class="lg lg-mine"></i>我的班</span>
+          <span><i class="lg lg-locked"></i>二車鎖定/不可排</span>
         </div>
-        <div class="stat-value" id="rateValue">0%</div>
-        <div class="progress">
-          <div class="progress-bar" id="rateBar"></div>
-          <div class="progress-target" title="達標門檻 90%"></div>
+        <span id="syncText" class="muted small"></span>
+      </div>
+
+      <section class="stats">
+        <div class="stat stat-main" id="rateCard">
+          <div class="stat-label">
+            本月協勤排班率 <small>（僅計一車｜目標 ≥90%）</small>
+            <span class="goal-badge" id="goalBadge">未達標</span>
+          </div>
+          <div class="stat-value" id="rateValue">0%</div>
+          <div class="progress">
+            <div class="progress-bar" id="rateBar"></div>
+            <div class="progress-target" title="達標門檻 90%"></div>
+          </div>
+          <div class="stat-sub" id="rateSub"></div>
         </div>
-        <div class="stat-sub" id="rateSub"></div>
-      </div>
-      <div class="stat">
-        <div class="stat-label">一車 空缺班數</div>
-        <div class="stat-value warn" id="gapValue">0</div>
-        <div class="stat-sub" id="gapSub"></div>
-      </div>
-      <div class="stat">
-        <div class="stat-label">二車 已排班數</div>
-        <div class="stat-value t2" id="t2Value">0</div>
-        <div class="stat-sub" id="t2Sub">不列入排班率</div>
-      </div>
-      <div class="stat">
-        <div class="stat-label">我的本月班數</div>
-        <div class="stat-value mine" id="myValue">0</div>
-        <div class="stat-sub" id="mySub"></div>
-      </div>
-    </section>
+        <div class="stat">
+          <div class="stat-label">一車 空缺班數</div>
+          <div class="stat-value warn" id="gapValue">0</div>
+          <div class="stat-sub" id="gapSub"></div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">二車 已排班數</div>
+          <div class="stat-value t2" id="t2Value">0</div>
+          <div class="stat-sub" id="t2Sub">不列入排班率</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">我的本月班數</div>
+          <div class="stat-value mine" id="myValue">0</div>
+          <div class="stat-sub" id="mySub"></div>
+        </div>
+      </section>
+    </div>
 
     <div class="layout">
       <section class="calendar-wrap card">

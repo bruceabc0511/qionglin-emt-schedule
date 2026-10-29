@@ -38,18 +38,25 @@ body {
 
 /* ---------- 頁首 ---------- */
 .topbar {
-  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
-  padding: 12px 24px; color: #fff;
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 10px 24px; color: #fff;
   background: linear-gradient(120deg, var(--primary) 0%, var(--primary-dark) 100%);
   box-shadow: 0 2px 10px rgba(46, 139, 230, .35);
   position: sticky; top: 0; z-index: 20;
 }
-.brand { display: flex; align-items: center; gap: 12px; }
-.brand .logo { width: 44px; height: 44px; flex: none; }
-.brand h1 { margin: 0; font-size: 20px; letter-spacing: 1px; }
-.brand p { margin: 2px 0 0; font-size: 13px; opacity: .9; }
-.user-area { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.user-chip { background: var(--navy); padding: 6px 14px; border-radius: 999px; font-weight: 600; }
+.topbar-main { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand .logo { width: 40px; height: 40px; flex: none; }
+.brand h1 { margin: 0; font-size: 19px; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand p { margin: 2px 0 0; font-size: 12.5px; opacity: .9; }
+.topbar-quick { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.top-toggle-btn { padding: 6px 12px; font-size: 13px; font-weight: 600; border-radius: 999px; background: rgba(255,255,255,.22); }
+.user-area {
+  display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap;
+  padding-top: 8px; border-top: 1px solid rgba(255,255,255,.22);
+}
+.user-area.collapsed { display: none !important; }
+.user-chip { background: var(--navy); padding: 5px 12px; border-radius: 999px; font-weight: 600; font-size: 13.5px; white-space: nowrap; }
 .mode-badge { font-size: 12px; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.25); }
 .mode-badge.mock { background: var(--orange); }
 
@@ -88,11 +95,15 @@ input:focus, select:focus { outline: 2px solid var(--primary); border-color: tra
 .hint { margin-top: 16px; font-size: 13px; color: var(--muted); line-height: 1.6; }
 .hint b { color: var(--orange); }
 
-/* ---------- 工具列 ---------- */
-main#appView { padding: 18px 24px 40px; max-width: 1600px; margin: 0 auto; }
-.toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
-.month-nav { display: flex; align-items: center; gap: 10px; }
-.month-nav h2 { margin: 0; min-width: 210px; text-align: center; color: var(--navy); font-size: 22px; }
+/* ---------- 工具列與可收合統計區 ---------- */
+main#appView { padding: 14px 24px 40px; max-width: 1600px; margin: 0 auto; }
+.toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+.month-nav { display: flex; align-items: center; gap: 8px; }
+.month-nav h2 { margin: 0; min-width: 195px; text-align: center; color: var(--navy); font-size: 21px; }
+.toolbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.dash-toggle-btn { font-weight: 700; font-size: 13.5px; }
+.dashboard-panel.collapsed { display: none !important; }
+.dash-subbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
 .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
 .legend span { display: inline-flex; align-items: center; gap: 5px; }
 .lg { width: 16px; height: 12px; border-radius: 3px; display: inline-block; }
@@ -100,7 +111,6 @@ main#appView { padding: 18px 24px 40px; max-width: 1600px; margin: 0 auto; }
 .lg-t2 { background: var(--t2-fill); }
 .lg-mine { background: #fff; border: 2px solid var(--red); }
 .lg-locked { background: repeating-linear-gradient(45deg, #dfe4ea 0 3px, #f1f4f8 3px 6px); border: 1px solid #cbd3dc; }
-.sync { display: flex; align-items: center; gap: 8px; font-size: 13px; }
 
 .open-banner {
   padding: 10px 16px; border-radius: 10px; margin-bottom: 14px; font-size: 14px; font-weight: 600;
@@ -303,8 +313,18 @@ main#appView { padding: 18px 24px 40px; max-width: 1600px; margin: 0 auto; }
   .stats { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 760px) {
-  .topbar { padding: 10px 14px; }
-  main#appView { padding: 12px; }
+  .topbar { padding: 8px 12px; gap: 6px; }
+  .brand .logo { width: 32px; height: 32px; }
+  .brand h1 { font-size: 16px; }
+  .brand p { display: none; }
+  .user-chip { padding: 4px 10px; font-size: 12.5px; }
+  .top-toggle-btn { padding: 5px 10px; font-size: 12.5px; }
+  .user-area { justify-content: flex-start; padding-top: 6px; gap: 6px; }
+  .user-area .btn { padding: 6px 10px; font-size: 12.5px; }
+  main#appView { padding: 10px; }
+  .toolbar { gap: 8px; margin-bottom: 8px; }
+  .toolbar-actions { width: 100%; justify-content: space-between; }
+  .dash-toggle-btn { flex: 1; justify-content: space-between; padding: 7px 12px; }
   .stats { grid-template-columns: 1fr 1fr; gap: 10px; }
   .stat-main { grid-column: 1 / -1; }
   .stat-value { font-size: 26px; }
