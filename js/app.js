@@ -236,7 +236,7 @@
         // 該月份尚未初始化：預設將全月二車時段設為全部鎖定
         d.lockedT2Dates = allMonthDatesWithMarker(d.year, d.month);
         if (isAdmin()) {
-          call('setTier2Lock', { dates: d.lockedT2Dates, locked: true }, { silent: true }).catch(() => {});
+          call('setTier2Lock', { dates: d.lockedT2Dates, locked: true }, { silent: true }).catch(() => { });
         }
       }
       state.data = d;
@@ -368,7 +368,7 @@
     const mine = shifts.filter(s => s.name === me);
     $('#myValue').textContent = mine.length;
     $('#mySub').textContent = `一車 ${mine.filter(s => s.tier === 1).length} 班、二車 ${mine.filter(s => s.tier === 2).length} 班`;
-    $('#dashMiniSummary').textContent = `排班率 ${rate.toFixed(1)}%｜我的班 ${mine.length}`;
+    $('#dashMiniSummary').textContent = `我已排班 ${mine.length} 天`;
 
     const stat = new Map();
     state.data.members.forEach(n => stat.set(n, { t1: 0, t2: 0 }));
@@ -771,9 +771,9 @@
           <td>${m.active ? '啟用' : '已刪除（停用）'}</td>
           <td>
             ${m.active
-              ? `<button class="btn btn-light btn-sm" data-act="reset" data-name="${esc(m.name)}">重設 PIN</button>
+          ? `<button class="btn btn-light btn-sm" data-act="reset" data-name="${esc(m.name)}">重設 PIN</button>
                  <button class="btn btn-danger btn-sm" data-act="remove" data-name="${esc(m.name)}">刪除</button>`
-              : `<button class="btn btn-ghost-dark btn-sm" data-act="restore" data-name="${esc(m.name)}">恢復</button>`}
+          : `<button class="btn btn-ghost-dark btn-sm" data-act="restore" data-name="${esc(m.name)}">恢復</button>`}
           </td>
         </tr>`).join('');
     } catch (e) { toast(e.message, 'err'); }

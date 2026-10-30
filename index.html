@@ -1,28 +1,31 @@
 <!DOCTYPE html>
 <html lang="zh-Hant-TW">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>芎林義消救護分隊 | 協勤線上排班系統</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
   <!-- ===== 頁首 ===== -->
   <header class="topbar" id="topbar">
     <div class="topbar-main">
       <div class="brand">
         <svg class="logo" viewBox="0 0 48 48" aria-hidden="true">
-          <circle cx="24" cy="24" r="22" fill="#fff"/>
-          <path d="M20 10h8v10h10v8H28v10h-8V28H10v-8h10z" fill="#E74C3C"/>
+          <circle cx="24" cy="24" r="22" fill="#fff" />
+          <path d="M20 10h8v10h10v8H28v10h-8V28H10v-8h10z" fill="#E74C3C" />
         </svg>
         <div>
           <h1 id="unitName">芎林義消救護分隊</h1>
-          <p>協勤線上排班系統</p>
+          <p>救護義消每日協勤線上排班系統</p>
         </div>
       </div>
       <div class="topbar-quick hidden" id="topbarQuick">
         <span class="user-chip" id="userChip"></span>
-        <button type="button" class="btn btn-ghost top-toggle-btn" id="toggleMenuBtn" title="展開/收合上方工具列">⚙️工具列 <span id="menuArrow">▾</span></button>
+        <button type="button" class="btn btn-ghost top-toggle-btn" id="toggleMenuBtn" title="展開/收合上方工具列">⚙️工具列 <span
+            id="menuArrow">▾</span></button>
       </div>
     </div>
     <div class="user-area hidden" id="userArea">
@@ -38,10 +41,12 @@
   <!-- ===== 登入 ===== -->
   <main id="loginView" class="login-wrap">
     <form class="card login-card" id="loginForm" autocomplete="off">
-      <h2>協勤排班登入</h2>
+      <h2>登入排班系統</h2>
       <p class="muted">請選擇您的姓名並輸入個人 PIN 碼。僅限本人或管理員修改排班。</p>
       <label>姓名
-        <select id="loginName" required><option value="">載入中…</option></select>
+        <select id="loginName" required>
+          <option value="">載入中…</option>
+        </select>
       </label>
       <label>PIN 碼
         <input type="password" id="loginPin" inputmode="numeric" maxlength="8" placeholder="4～8 位數字" required>
@@ -62,7 +67,7 @@
       </div>
       <div class="toolbar-actions">
         <button type="button" class="btn btn-ghost-dark dash-toggle-btn" id="toggleDashBtn" title="展開/收合排班率統計與圖例">
-          📊 <span id="dashMiniSummary">統計資訊</span> <span id="dashArrow">▴</span>
+          <span id="dashMiniSummary">統計資訊</span> <span id="dashArrow">▴</span>
         </button>
         <button class="btn btn-ghost-dark" id="refreshBtn" title="重新整理">⟳ 更新</button>
       </div>
@@ -84,7 +89,7 @@
       <section class="stats">
         <div class="stat stat-main" id="rateCard">
           <div class="stat-label">
-            📊本月協勤率 <small>（僅計一車｜目標≥90%）</small>
+            📊本月總協勤率 <small>（僅計一車｜目標≥90%）</small>
             <span class="goal-badge" id="goalBadge">未達標</span>
           </div>
           <div class="stat-value" id="rateValue">0%</div>
@@ -119,7 +124,14 @@
       <aside class="card side">
         <h3>人員排班次數</h3>
         <table class="tbl" id="statTable">
-          <thead><tr><th>姓名</th><th>一車</th><th>二車</th><th>合計</th></tr></thead>
+          <thead>
+            <tr>
+              <th>姓名</th>
+              <th>一車</th>
+              <th>二車</th>
+              <th>合計</th>
+            </tr>
+          </thead>
           <tbody></tbody>
         </table>
       </aside>
@@ -144,7 +156,8 @@
         </div>
         <div class="tier-tabs" id="tierTabs">
           <button class="tier-tab t1" data-tier="1">一車 <small>08:00–22:00（4小時/班）</small></button>
-          <button class="tier-tab t2" data-tier="2" id="tier2TabBtn">二車 <small id="tier2TabSub">08:00–18:00（4小時/班）</small></button>
+          <button class="tier-tab t2" data-tier="2" id="tier2TabBtn">二車 <small
+              id="tier2TabSub">08:00–18:00（4小時/班）</small></button>
         </div>
         <div class="multi-bar" id="multiSelectBar"></div>
         <div class="slot-list" id="slotList"></div>
@@ -186,7 +199,8 @@
         <h3>變更 PIN 碼</h3>
         <p class="muted" id="pinNotice"></p>
         <label>原 PIN 碼<input type="password" id="oldPin" inputmode="numeric" maxlength="8" required></label>
-        <label>新 PIN 碼<input type="password" id="newPin" inputmode="numeric" maxlength="8" placeholder="4～8 位數字" required></label>
+        <label>新 PIN 碼<input type="password" id="newPin" inputmode="numeric" maxlength="8" placeholder="4～8 位數字"
+            required></label>
         <label>再次輸入新 PIN 碼<input type="password" id="newPin2" inputmode="numeric" maxlength="8" required></label>
       </div>
       <div class="modal-actions">
@@ -215,7 +229,14 @@
         <p class="muted small">刪除人員為「停用」帳號，歷史排班紀錄將保留，可隨時恢復。</p>
         <div class="tbl-scroll">
           <table class="tbl" id="memberTable">
-            <thead><tr><th>姓名</th><th>角色</th><th>狀態</th><th>操作</th></tr></thead>
+            <thead>
+              <tr>
+                <th>姓名</th>
+                <th>角色</th>
+                <th>狀態</th>
+                <th>操作</th>
+              </tr>
+            </thead>
             <tbody></tbody>
           </table>
         </div>
@@ -228,10 +249,13 @@
   </div>
 
   <div class="toast-wrap" id="toastWrap"></div>
-  <div class="loading hidden" id="loading"><div class="spinner"></div></div>
+  <div class="loading hidden" id="loading">
+    <div class="spinner"></div>
+  </div>
 
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
   <script src="js/app.js"></script>
 </body>
+
 </html>
