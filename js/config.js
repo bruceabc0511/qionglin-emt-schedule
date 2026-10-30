@@ -8,7 +8,7 @@
 window.APP_CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbyEf7fdKwdO50dXq4VMtbJ_vpDXp1jiOGmCjPFnIoPjdbpe88qN9epW8FGVw_JLVHSCrg/exec',
 
-  UNIT_NAME: '救護義消協勤排班系統',
+  UNIT_NAME: '救護協勤排班系統',
   SHIFT_HOURS: 4,             // 每班 4 小時
   STEP_HOURS: 1,              // 時間區間 1 小時（08-09、09-10…）
   OPEN_NEXT_MONTH_DAY: 20,    // 每月 20 號自動開放選填次月班表
