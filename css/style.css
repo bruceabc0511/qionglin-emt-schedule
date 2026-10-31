@@ -800,9 +800,9 @@ main#appView {
 
 .shift .adm-tag {
   font-size: 9.5px;
-  font-weight: 700;
-  color: #ee52cc;
-  background: rgba(255, 255, 255, .72);
+  font-weight: 500;
+  color: #960d78;
+  background: rgba(255, 255, 255, 0.781);
   padding: 0 4px;
   border-radius: 4px;
   margin-top: 1px;
