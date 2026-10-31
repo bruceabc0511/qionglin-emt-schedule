@@ -622,7 +622,7 @@ main#appView {
 
 .day.today {
   border: 0px solid var(--primary-dark);
-  box-shadow: 0 0 0 4px rgb(255, 0, 0);
+  box-shadow: 0 0 0 3px rgb(255, 0, 0);
 }
 
 .day-head {
@@ -799,8 +799,8 @@ main#appView {
 }
 
 .shift .adm-tag {
-  font-size: 9.5px;
-  font-weight: 500;
+  font-size: 8px;
+  font-weight: 600;
   color: #960d78;
   background: rgba(255, 255, 255, 0.781);
   padding: 0 4px;
